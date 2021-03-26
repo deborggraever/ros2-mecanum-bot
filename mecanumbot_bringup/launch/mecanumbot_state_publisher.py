@@ -39,9 +39,4 @@ def generate_launch_description():
                 {'robot_description': robot_description}
             ]
         )
-        #Node(
-        #    package='mecanumbot_test',
-        #    executable='talker',
-        #    output='screen'
-        #),
     ])
