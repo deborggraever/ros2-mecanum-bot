@@ -121,7 +121,7 @@
     </inertial>
   </link>
 
-  <joint name="rl_wheel_joint" type="fixed">
+  <joint name="rl_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="rl_wheel_link"/>
     <origin xyz="0.19 -0.23 ${wheel_offset_z}" rpy="0 0 0" />
@@ -147,7 +147,7 @@
     </inertial>
   </link>
 
-  <joint name="rr_wheel_joint" type="fixed">
+  <joint name="rr_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="rr_wheel_link"/>
     <origin xyz="0.19 0.23 ${wheel_offset_z}" rpy="0 0 0" />
@@ -172,4 +172,31 @@
       <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" w="${wheel_width}" />
     </inertial>
   </link>
+
+  <ros2_control name="mecanumbot" type="system">
+    <hardware>
+      <plugin>mecanumbot_hardware/MecanumbotHardware</plugin>
+      <param name="serial_port">/dev/ttyACM0</param>
+    </hardware>
+    <joint name="fl_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="fr_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="rl_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="rr_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+  </ros2_control>
 </robot>

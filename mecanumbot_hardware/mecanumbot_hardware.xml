@@ -1,0 +1,10 @@
+<library path="mecanumbot_hardware">
+  <class name="mecanumbot_hardware/MecanumbotHardware"
+    type="debict::mecanumbot::hardware::MecanumbotHardware"
+    base_class_type="hardware_interface::SystemInterface"
+  >
+    <description>
+      Hardware interface for mecanumbot
+    </description>
+  </class>
+</library>

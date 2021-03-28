@@ -1,0 +1,10 @@
+<library path="mecanumbot_controller">
+  <class name="mecanumbot_controller/MecanumbotDriveController"
+    type="debict::mecanumbot::controller::MecanumbotDriveController"
+    base_class_type="controller_interface::ControllerInterface"
+  >
+    <description>
+      Drive controller for mecanumbot
+    </description>
+  </class>
+</library>

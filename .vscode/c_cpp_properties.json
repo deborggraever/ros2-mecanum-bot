@@ -6,9 +6,18 @@
         "limitSymbolsToIncludedHeaders": true
       },
       "includePath": [
-        "/usr/include/**"
+        "/opt/ros/foxy/include/**",
+        "/usr/include/**",
+        "${workspaceFolder}/mecanumbot_base/include/**",
+        "${workspaceFolder}/mecanumbot_control/include/**",
+        "${workspaceFolder}/mecanumbot_controller/include/**",
+        "${workspaceFolder}/mecanumbot_hardware/include/**"
       ],
-      "name": "ROS"
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++14"
     }
   ],
   "version": 4

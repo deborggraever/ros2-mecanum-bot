@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(mecanumbot_description)
+project(mecanumbot_control)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,16 +17,22 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(urdf REQUIRED)
-find_package(xacro REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(controller_manager REQUIRED)
 
-install(
-  DIRECTORY
-    urdf
-    rviz
-    meshes
-    config
-  DESTINATION share/${PROJECT_NAME}
+add_executable(mecanumbot_control_node
+  src/mecanumbot_control_node.cpp
 )
+ament_target_dependencies(
+  mecanumbot_control_node
+  rclcpp
+  controller_manager
+)
+
+install(TARGETS
+  mecanumbot_control_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 
 ament_package()

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>mecanumbot_bringup</name>
+  <name>mecanumbot_hardware</name>
   <version>1.0.0</version>
-  <description>Launch scripts for starting the Mecanum wheel robot</description>
+  <description>Mecanum robot hardware interface</description>
   <license>Apache 2.0</license>
   <author email="randy@deb-ict.com">Randy Deborggraeve</author>
   <maintainer email="randy@deb-ict.com">Randy Deborggrave</maintainer>
@@ -12,10 +12,11 @@
   <url type="bugtracker">https://github.com/DeborggraeveR/ros2-mecanum-bot/issues</url>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <exec_depend>controller_manager</exec_depend>
-  <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>rviz</exec_depend>
-  <exec_depend>mecanumbot_description</exec_depend>
+  
+  <depend>hardware_interface</depend>
+  <depend>rclcpp</depend>
+
+  <build_depend>pluginlib</build_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

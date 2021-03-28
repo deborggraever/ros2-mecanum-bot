@@ -1,0 +1,20 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    joint_state_controller:
+      type: joint_state_controller/JointStateController
+
+    mecanumbot_drive_controller:
+      type: mecanumbot_controller/MecanumbotDriveController
+
+mecanumbot_drive_controller:
+  ros__parameters:
+    fl_wheel_joint_name: fl_wheel_joint
+    fr_wheel_joint_name: fr_wheel_joint
+    rl_wheel_joint_name: rl_wheel_joint
+    rr_wheel_joint_name: rr_wheel_joint
+    wheel_radius: 0.03
+    wheel_distance:
+      width: 0.46
+      length: 0.40
