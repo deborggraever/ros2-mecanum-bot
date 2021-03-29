@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#define SERIAL_BUFFER_MAX_SIZE      1024
-#define SERIAL_FRAME_MAX_SIZE       100
+#define MECANUMBOT_SERIAL_BUFFER_MAX_SIZE           200
+#define MECANUMBOT_SERIAL_SERIAL_FRAME_MAX_SIZE     100
 
 namespace debict
 {
@@ -22,7 +22,7 @@ namespace debict
 
             struct SerialHdlcFrame
             {
-                uint8_t data[100];
+                uint8_t data[MECANUMBOT_SERIAL_SERIAL_FRAME_MAX_SIZE];
                 size_t length;
             };
 
@@ -34,13 +34,29 @@ namespace debict
                 
                 return_type open(const std::string & port_name);
                 return_type close();
-                return_type read(std::vector<SerialHdlcFrame>& frames);
-                return_type write(const uint8_t* data, size_t size);
+                return_type read_frames(std::vector<SerialHdlcFrame>& frames);
+                return_type write_frame(const uint8_t* data, size_t size);
                 bool is_open() const;
+
+            protected:
+                void encode_byte(uint8_t data, bool flag);
+                void decode_byte(uint8_t data, std::vector<SerialHdlcFrame>& frames);
+                uint16_t crc_update(uint16_t crc, uint8_t data);
 
             private:
                 int serial_port_;
-                uint8_t buffer_data_[SERIAL_BUFFER_MAX_SIZE];
+                uint8_t rx_frame_buffer_[MECANUMBOT_SERIAL_SERIAL_FRAME_MAX_SIZE];
+                size_t rx_frame_length_;
+                uint16_t rx_frame_crc_;
+                bool rx_frame_escape_;
+                uint8_t tx_frame_buffer_[MECANUMBOT_SERIAL_SERIAL_FRAME_MAX_SIZE];
+                size_t tx_frame_buffer_length_;
+                uint16_t tx_frame_buffer_crc_;
+
+                uint8_t rx_buffer_[MECANUMBOT_SERIAL_BUFFER_MAX_SIZE];
+
+
+                uint8_t buffer_data_[MECANUMBOT_SERIAL_BUFFER_MAX_SIZE];
                 size_t buffer_size_;
                 size_t buffer_offset_;
                 size_t frame_offset_;

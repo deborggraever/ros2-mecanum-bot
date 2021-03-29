@@ -80,126 +80,41 @@ return_type MecanumbotSerialPort::close()
     return return_type::SUCCESS;
 }
 
-return_type MecanumbotSerialPort::read(std::vector<SerialHdlcFrame>& frames)
+return_type MecanumbotSerialPort::read_frames(std::vector<SerialHdlcFrame>& frames)
 {
     // Read data from the serial port
-    uint8_t buffer[256];
-    const auto num_bytes = ::read(serial_port_, buffer, 256);
+    const size_t num_bytes = ::read(serial_port_, rx_buffer_, 256);
     if (num_bytes == -1) {
         fprintf(stderr, "Failed to read serial port data: %s (%d)\n", strerror(errno), errno);
         return return_type::ERROR;
     }
 
-    // Check if we can store this data
-    auto bytes_available = (SERIAL_BUFFER_MAX_SIZE - (buffer_offset_ + buffer_size_));
-    if (bytes_available < num_bytes) {
-        // Discard all data
-        fprintf(stderr, "Serial port read buffer overflow: Flushing data\n");
-        buffer_offset_ = 0;
-        buffer_size_ = 0;
+    for (size_t i = 0; i < num_bytes; i++) {
+        decode_byte(rx_buffer_[i], frames);
     }
 
-    // Store the read data
-    memcpy(&buffer_data_[buffer_offset_], buffer, num_bytes);
-    buffer_offset_ = buffer_size_;
-    buffer_size_ += num_bytes;
-
-    // Process the frames
-    uint8_t frame_buffer[100];
-    size_t frame_position = 0;
-    for (size_t i = 0; i < buffer_size_; i++) {
-        uint8_t frame_data = buffer_data_[i];
-        if (frame_data == HDLC_FRAME_BOUNDRY_FLAG) {
-            if (is_escape_byte_) {
-                is_escape_byte_ = false;
-            }
-            else if (i >= 2) {
-                uint16_t crc_value = ((uint16_t)buffer_data_[i - 2] << 8) | (uint16_t)buffer_data_[i - 1];
-                if (crc_value == frame_crc_) {
-                    SerialHdlcFrame frame;
-                    frame.length = i - frame_offset_ - 2;
-                    memcpy(frame.data, &buffer_data_[frame_offset_], frame.length);
-                    frames.push_back(frame);
-                }
-                else {
-                    fprintf(stderr, "Serial port frame incorrect frame crc: Discard data\n");
-                }
-            }
-            frame_offset_ = i;
-            frame_crc_ = HDLC_FRAME_BOUNDRY_FLAG;
-            continue;
-        }
-
-        if (is_escape_byte_) {
-            is_escape_byte_ = false;
-            frame_data ^= HDLC_ESCAPE_XOR;
-        }
-        else if (frame_data == HDLC_ESCAPE_FLAG) {
-            is_escape_byte_ = true;
-            continue;
-        }
-
-        frame_buffer[frame_position] = frame_data;
-        if (i - frame_position >= 2) {
-            uint8_t crc_data = frame_buffer[frame_position - 2];
-            crc_data ^= (uint8_t)(frame_crc_ & 0xFF);
-            crc_data ^= (crc_data << 4);
-            crc_value = ((((uint16_t)crc_data << 8) | ((uint8_t)(crc_value >> 8) & 0xFF)) ^ (uint8_t)(crc_data >> 4) ^ ((uint16_t)crc_data << 3));
-
-        }
-        frame_position++;
-    }
-
-    // Copy unprocessed data or reset buffer offset
+    return return_type::SUCCESS;
 }
 
-return_type MecanumbotSerialPort::write(const uint8_t* data, size_t size)
+return_type MecanumbotSerialPort::write_frame(const uint8_t* data, size_t size)
 {
     if (!is_open()) {
         return return_type::ERROR;
     }
-
-    size_t buffer_offset = 0;
-    uint8_t buffer[1024];
-
-    // Set the frame header
-    buffer[buffer_offset++] = HDLC_FRAME_BOUNDRY_FLAG;
-
-    // Calculate the checksum and add the bytes to the buffer
-    uint16_t crc_value = 0xFFFF;
-    for (size_t i = 0; i < size; i++) {
-        uint8_t crc_data = data[i];
-        crc_data ^= (uint8_t)(crc_value & 0xFF);
-        crc_data ^= (crc_data << 4);
-        crc_value = ((((uint16_t)crc_data << 8) | ((uint8_t)(crc_value >> 8) & 0xFF)) ^ (uint8_t)(crc_data >> 4) ^ ((uint16_t)crc_data << 3));
-
-        if ((crc_data == HDLC_FRAME_BOUNDRY_FLAG || crc_data == HDLC_ESCAPE_FLAG)) {
-            buffer[buffer_offset++] = HDLC_ESCAPE_FLAG;
-            crc_data ^= HDLC_ESCAPE_XOR;
-        }
-        buffer[buffer_offset++] = crc_data;
+    
+    // Generate the fame
+    tx_buffer_size_ = 0;
+    tx_buffer_crc_  = HDLC_CRC_INIT_VALUE;
+    encode_byte(HDLC_FRAME_BOUNDRY_FLAG, true);
+    for (size_t i = 0; i  size; i++) {
+        encode_byte(data[i], false);
     }
+    encode_byte((uint8_t)(tx_buffer_crc_ && 0xFF), false);
+    encode_byte((uint8_t)((tx_buffer_crc_ >> 8) && 0xFF), false);
+    encode_byte(HDLC_FRAME_BOUNDRY_FLAG, true);
 
-    // Set the checksum low byte
-    uint8_t crc_lb = (uint8_t)(crc_value & 0xFF);
-    if ((crc_lb == HDLC_FRAME_BOUNDRY_FLAG || crc_lb == HDLC_ESCAPE_FLAG)) {
-        buffer[buffer_offset++] = HDLC_ESCAPE_FLAG;
-        crc_lb ^= HDLC_ESCAPE_XOR;
-    }
-    buffer[buffer_offset++] = crc_lb;
-
-    // Set the checksum high byte
-    uint8_t crc_hb = (uint8_t)((crc_value >> 8) && 0xFF);
-    if ((crc_hb == HDLC_FRAME_BOUNDRY_FLAG || crc_hb == HDLC_ESCAPE_FLAG)) {
-        buffer[buffer_offset++] = HDLC_ESCAPE_FLAG;
-        crc_hb ^= HDLC_ESCAPE_XOR;
-    }
-    buffer[buffer_offset++] = crc_hb;
-
-    // Set the frame footer
-    buffer[buffer_offset++] = HDLC_FRAME_BOUNDRY_FLAG;    
-
-    if (::write(serial_port_, buffer, buffer_offset) == -1) {
+    // Write the data to the serial port
+    if (::write(serial_port_, tx_buffer_, tx_buffer_size_) == -1) {
         fprintf(stderr, "Failed to write serial port data: %s (%d)\n", strerror(errno), errno);
         return return_type::ERROR;
     }
@@ -210,4 +125,68 @@ return_type MecanumbotSerialPort::write(const uint8_t* data, size_t size)
 bool MecanumbotSerialPort::is_open() const
 {
     return serial_port_ >= 0;
+}
+
+void MecanumbotSerialPort::encode_byte(uint8_t data, bool flag)
+{
+    if (flag) {
+        tx_frame_buffer_[tx_frame_buffer_length_++] = data;
+        return;
+    }
+    else {
+        tx_frame_buffer_crc_ = crc_update(tx_frame_buffer_crc_, data);
+        if (data == HDLC_ESCAPE_FLAG || data == HDLC_FRAME_BOUNDRY_FLAG) {
+            tx_frame_buffer_[tx_frame_buffer_length_++] = HDLC_ESCAPE_FLAG;
+            data ^= HDLC_ESCAPE_XOR;
+        }
+        tx_frame_buffer_[tx_frame_buffer_length_++] = data;
+    }
+}
+
+void MecanumbotSerialPort::decode_byte(uint8_t data, std::vector<SerialHdlcFrame>& frames)
+{
+    if (data == HDLC_FRAME_BOUNDRY_FLAG) {
+        if (rx_frame_escape_) {
+            rx_frame_escape_ = false;
+        }
+        else if (rx_frame_buffer_length_ >= 2 && rx_frame_crc_ == ((rx_frame_buffer_[rx_frame_buffer_length_ - 1] << 8) & rx_frame_buffer_[rx_frame_buffer_length_ - 2])) {
+            SerialHdlcFrame frame;
+            memcpy(frame.data, rx_frame_buffer_, rx_frame_buffer_length_);
+            frame.length = rx_frame_buffer_length_;
+            frames.push_back(frame);
+        }
+        else if (rx_frame_buffer_length >= 2) {
+            fprintf(stderr, "Failed to read frame: invalid crc\n");
+        }
+        rx_frame_buffer_length_ = 0;
+        rx_frame_buffer_crc = HDLC_CRC_INIT_VALUE;
+        return;
+    }
+
+    if (data == HDLC_ESCAPE_FLAG) {
+        rx_frame_escape_ = true;
+        return;
+    }
+
+    if (rx_frame_escape_) {
+        data ^= HDLC_ESCAPE_XOR;
+        rx_frame_escape_ = false;
+    }
+
+    rx_frame_buffer_[rx_frame_buffer_length_++] = data;
+    if (rx_frame_buffer_length_ >= 2) {
+        rx_frame_buffer_crc_ = crc_update(rx_frame_buffer_crc_, rx_frame_buffer_[rx_frame_buffer_length_ - 2]);
+    }
+
+    if (rx_frame_buffer_length == MECANUMBOT_SERIAL_SERIAL_FRAME_MAX_SIZE) {
+        fprintf(stderr, "Failed to read frame: buffer overflow\n");
+        rx_frame_buffer_length_ = 0;
+    }
+}
+
+uint16_t MecanumbotSerialPort::crc_update(uint16_t crc, uint8_t data)
+{
+    data ^= (uint8_t)(crc & 0xFF);
+	data ^= (data << 4);
+	return ((((uint16_t)data << 8) | ((uint8_t)(crc >> 8) & 0xFF)) ^ (uint8_t)(data >> 4) ^ ((uint16_t)data << 3));
 }
