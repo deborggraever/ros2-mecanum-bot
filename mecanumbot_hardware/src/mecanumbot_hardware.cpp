@@ -3,6 +3,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <vector>
+#include <string>
 
 #include "mecanumbot_hardware/mecanumbot_hardware.hpp"
 
@@ -20,13 +21,18 @@ hardware_interface::return_type MecanumbotHardware::configure(const hardware_int
     }
 
     serial_port_name_ = info_.hardware_parameters["serial_port"];
+    motor_ids_.resize(info_.joints.size());
     position_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
     velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
     velocity_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
     velocity_commands_saved_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-
-    for (const hardware_interface::ComponentInfo & joint : info_.joints)
+    
+    for (hardware_interface::ComponentInfo & joint : info_.joints)
     {
+        if (joint.parameters["motor_id"].empty()) {
+            RCLCPP_FATAL(rclcpp::get_logger("MecanumbotHardware"), "Motor id not defined for join %s", joint.name.c_str());
+            return hardware_interface::return_type::ERROR;
+        }
         if (joint.command_interfaces.size() != 1) {
             RCLCPP_FATAL(rclcpp::get_logger("MecanumbotHardware"), "Invalid number of command interfaces (expected: 1)");
             return hardware_interface::return_type::ERROR;
@@ -48,6 +54,11 @@ hardware_interface::return_type MecanumbotHardware::configure(const hardware_int
             RCLCPP_FATAL(rclcpp::get_logger("MecanumbotHardware"), "Invalid joint state interface 1 type (expected: velocity)");
             return hardware_interface::return_type::ERROR;
         }
+    }
+
+    for (size_t i = 0; i < info_.joints.size(); i++) {
+        motor_ids_[i] = (uint8_t)std::stoi(info_.joints[i].parameters["motor_id"]);
+        RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "%s mapped to motor %d", info_.joints[i].name.c_str(), motor_ids_[i]);
     }
 
     status_ = hardware_interface::status::CONFIGURED;
@@ -140,6 +151,23 @@ hardware_interface::return_type MecanumbotHardware::stop()
 
 hardware_interface::return_type MecanumbotHardware::read()
 {
+
+    // We currently have an ack response, so read the frames
+    std::vector<SerialHdlcFrame> frames;
+    serial_port_->read_frames(frames);
+
+    /*
+    for (size_t i = 0; i < frames.size(); i++) {
+        char buff[100];
+        int offset = 0;
+        for (size_t l = 0; l < frames[i].length; l++) {
+            sprintf(&buff[offset], "%02X ", frames[i].data[l]);
+            offset += 3;
+        }
+        RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Frame received: %s", buff);
+    }
+    */
+
     for (size_t i = 0; i < info_.joints.size(); i++) {
         //RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Got position %.5f, velocity %.5f for joint %d!", position_states_[i], velocity_states_[i], i);
     }
@@ -150,11 +178,33 @@ hardware_interface::return_type MecanumbotHardware::read()
 hardware_interface::return_type MecanumbotHardware::write()
 {
     for (size_t i = 0; i < info_.joints.size(); i++) {
+        // Only send motor commands if the velocity changed
         if (velocity_commands_[i] != velocity_commands_saved_[i]) {
-            RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Got command %.5f for joint %d!", velocity_commands_[i], i);
 
-            //TODO: Send motor command over usb to device
+            //if (i == 0) {
+            //    RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Motor velocity changed: %.5f", velocity_commands_[i]);
+            //}
 
+            // Calculate the motor duty
+            uint16_t duty = (uint16_t)(velocity_commands_[i]);
+
+            // Generate the motor command message
+            uint8_t message[6];
+            message[0] = (uint8_t)DeviceCommand::MotorSetDuty;
+            message[1] = 4; // Payload len
+            message[2] = motor_ids_[i];
+            if (velocity_commands_[i] >= 0.0) {
+                message[3] = (uint8_t)DeviceMotorDirection::Forward;
+            } else {
+                message[3] = (uint8_t)DeviceMotorDirection::Reverse;
+            }
+            message[4] = (uint8_t)(duty & 0xFF);
+            message[5] = (uint8_t)((duty >> 8) & 0xFF);
+
+            // Send the motor command
+            serial_port_->write_frame(message, 6);
+
+            // Store the current velocity
             velocity_commands_saved_[i] = velocity_commands_[i];
         }
     }

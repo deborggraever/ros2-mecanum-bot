@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <unistd.h>
-
+#include <rclcpp/rclcpp.hpp>
 
 #include "mecanumbot_hardware/mecanumbot_serial_port.hpp"
 
@@ -18,11 +18,11 @@ using namespace debict::mecanumbot::hardware;
 
 MecanumbotSerialPort::MecanumbotSerialPort()
     : serial_port_(-1)
-    , buffer_size_(0)
-    , buffer_offset_(0)
-    , frame_offset_(0)
-    , frame_crc_(0)
-    , is_escape_byte_(false)
+    , rx_frame_length_(0)
+    , rx_frame_crc_(HDLC_CRC_INIT_VALUE)
+    , rx_frame_escape_(false)
+    , tx_frame_length_(0)
+    , tx_frame_crc_(HDLC_CRC_INIT_VALUE)
 {
 
 }
@@ -34,7 +34,7 @@ MecanumbotSerialPort::~MecanumbotSerialPort()
 
 return_type MecanumbotSerialPort::open(const std::string & port_name)
 {
-    serial_port_ = ::open(port_name.c_str(), O_RDWR);
+    serial_port_ = ::open(port_name.c_str(), O_RDWR | O_NOCTTY);
 
     if (serial_port_ < 0) {
         fprintf(stderr, "Failed to open serial port: %s (%d)\n", strerror(errno), errno);
@@ -48,19 +48,26 @@ return_type MecanumbotSerialPort::open(const std::string & port_name)
         return return_type::ERROR;
     }
 
-    tty_config.c_iflag &= ~(INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXANY | IXOFF);
-    tty_config.c_iflag |= IGNBRK | IGNPAR;
-    tty_config.c_oflag &= ~(OPOST | ONLCR | OCRNL | ONOCR | ONLRET | OFILL | NLDLY | VTDLY);
-    tty_config.c_oflag |= NL0 | VT0;
-    tty_config.c_cflag &= ~(CSIZE | CSTOPB | PARENB);
-    tty_config.c_cflag |= CS8 | CREAD | CLOCAL;
-    tty_config.c_lflag &= ~(ISIG | ICANON | ECHO | TOSTOP | IEXTEN);
+    memset(&tty_config, 0, sizeof(termios));
+    tty_config.c_cflag = B9600 | CRTSCTS | CS8 | CLOCAL | CREAD;
+    tty_config.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
+    tty_config.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in communication (most common)
+    tty_config.c_cflag &= ~CSIZE;    // Clear bits per byte
+    tty_config.c_cflag |=  CS8;      // 8 bit per byte
+    tty_config.c_iflag = IGNPAR;
+    tty_config.c_oflag = OPOST;
+    tty_config.c_lflag = 0;
+    tty_config.c_cc[VTIME] = 10;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+    tty_config.c_cc[VMIN] = 0;
+    tcflush(serial_port_, TCIFLUSH);
 
+    /*
     if (::cfsetispeed(&tty_config, B9600) != 0 || ::cfsetospeed(&tty_config, B9600) != 0) {
         fprintf(stderr, "Failed to set serial port speed: %s (%d)\n", strerror(errno), errno);
         close();
         return return_type::ERROR;
     }
+    */
 
     if (::tcsetattr(serial_port_, TCSANOW, &tty_config) != 0) {
         fprintf(stderr, "Failed to set serial port configuration: %s (%d)\n", strerror(errno), errno);
@@ -83,13 +90,13 @@ return_type MecanumbotSerialPort::close()
 return_type MecanumbotSerialPort::read_frames(std::vector<SerialHdlcFrame>& frames)
 {
     // Read data from the serial port
-    const size_t num_bytes = ::read(serial_port_, rx_buffer_, 256);
+    const ssize_t num_bytes = ::read(serial_port_, rx_buffer_, 256);
     if (num_bytes == -1) {
         fprintf(stderr, "Failed to read serial port data: %s (%d)\n", strerror(errno), errno);
         return return_type::ERROR;
     }
 
-    for (size_t i = 0; i < num_bytes; i++) {
+    for (ssize_t i = 0; i < num_bytes; i++) {
         decode_byte(rx_buffer_[i], frames);
     }
 
@@ -103,18 +110,18 @@ return_type MecanumbotSerialPort::write_frame(const uint8_t* data, size_t size)
     }
     
     // Generate the fame
-    tx_buffer_size_ = 0;
-    tx_buffer_crc_  = HDLC_CRC_INIT_VALUE;
-    encode_byte(HDLC_FRAME_BOUNDRY_FLAG, true);
-    for (size_t i = 0; i  size; i++) {
-        encode_byte(data[i], false);
+    tx_frame_length_ = 0;
+    tx_frame_crc_  = HDLC_CRC_INIT_VALUE;
+    tx_frame_buffer_[tx_frame_length_++] = HDLC_FRAME_BOUNDRY_FLAG;
+    for (size_t i = 0; i < size; i++) {
+        tx_frame_crc_ = crc_update(tx_frame_crc_, data[i]);
+        encode_byte(data[i]);
     }
-    encode_byte((uint8_t)(tx_buffer_crc_ && 0xFF), false);
-    encode_byte((uint8_t)((tx_buffer_crc_ >> 8) && 0xFF), false);
-    encode_byte(HDLC_FRAME_BOUNDRY_FLAG, true);
+    encode_byte((tx_frame_crc_ & 0xFF));
+    encode_byte(((tx_frame_crc_ >> 8) & 0xFF));
+    tx_frame_buffer_[tx_frame_length_++] = HDLC_FRAME_BOUNDRY_FLAG;
 
-    // Write the data to the serial port
-    if (::write(serial_port_, tx_buffer_, tx_buffer_size_) == -1) {
+    if (::write(serial_port_, tx_frame_buffer_, tx_frame_length_) == -1) {
         fprintf(stderr, "Failed to write serial port data: %s (%d)\n", strerror(errno), errno);
         return return_type::ERROR;
     }
@@ -127,20 +134,13 @@ bool MecanumbotSerialPort::is_open() const
     return serial_port_ >= 0;
 }
 
-void MecanumbotSerialPort::encode_byte(uint8_t data, bool flag)
+void MecanumbotSerialPort::encode_byte(uint8_t data)
 {
-    if (flag) {
-        tx_frame_buffer_[tx_frame_buffer_length_++] = data;
-        return;
+    if (data == HDLC_ESCAPE_FLAG || data == HDLC_FRAME_BOUNDRY_FLAG) {
+        tx_frame_buffer_[tx_frame_length_++] = HDLC_ESCAPE_FLAG;
+        data ^= HDLC_ESCAPE_XOR;
     }
-    else {
-        tx_frame_buffer_crc_ = crc_update(tx_frame_buffer_crc_, data);
-        if (data == HDLC_ESCAPE_FLAG || data == HDLC_FRAME_BOUNDRY_FLAG) {
-            tx_frame_buffer_[tx_frame_buffer_length_++] = HDLC_ESCAPE_FLAG;
-            data ^= HDLC_ESCAPE_XOR;
-        }
-        tx_frame_buffer_[tx_frame_buffer_length_++] = data;
-    }
+    tx_frame_buffer_[tx_frame_length_++] = data;
 }
 
 void MecanumbotSerialPort::decode_byte(uint8_t data, std::vector<SerialHdlcFrame>& frames)
@@ -149,17 +149,14 @@ void MecanumbotSerialPort::decode_byte(uint8_t data, std::vector<SerialHdlcFrame
         if (rx_frame_escape_) {
             rx_frame_escape_ = false;
         }
-        else if (rx_frame_buffer_length_ >= 2 && rx_frame_crc_ == ((rx_frame_buffer_[rx_frame_buffer_length_ - 1] << 8) & rx_frame_buffer_[rx_frame_buffer_length_ - 2])) {
+        else if (rx_frame_length_ >= 2 && rx_frame_crc_ == ((rx_frame_buffer_[rx_frame_length_ - 1] << 8) | rx_frame_buffer_[rx_frame_length_ - 2])) {
             SerialHdlcFrame frame;
-            memcpy(frame.data, rx_frame_buffer_, rx_frame_buffer_length_);
-            frame.length = rx_frame_buffer_length_;
+            memcpy(frame.data, rx_frame_buffer_, rx_frame_length_ - 2);
+            frame.length = rx_frame_length_ - 2;
             frames.push_back(frame);
         }
-        else if (rx_frame_buffer_length >= 2) {
-            fprintf(stderr, "Failed to read frame: invalid crc\n");
-        }
-        rx_frame_buffer_length_ = 0;
-        rx_frame_buffer_crc = HDLC_CRC_INIT_VALUE;
+        rx_frame_length_ = 0;
+        rx_frame_crc_ = HDLC_CRC_INIT_VALUE;
         return;
     }
 
@@ -169,24 +166,25 @@ void MecanumbotSerialPort::decode_byte(uint8_t data, std::vector<SerialHdlcFrame
     }
 
     if (rx_frame_escape_) {
-        data ^= HDLC_ESCAPE_XOR;
         rx_frame_escape_ = false;
+        data ^= HDLC_ESCAPE_XOR;
     }
 
-    rx_frame_buffer_[rx_frame_buffer_length_++] = data;
-    if (rx_frame_buffer_length_ >= 2) {
-        rx_frame_buffer_crc_ = crc_update(rx_frame_buffer_crc_, rx_frame_buffer_[rx_frame_buffer_length_ - 2]);
+    rx_frame_buffer_[rx_frame_length_] = data;
+    if (rx_frame_length_ >= 2) {
+        rx_frame_crc_ = crc_update(rx_frame_crc_, rx_frame_buffer_[rx_frame_length_ - 2]);
     }
+    rx_frame_length_++;
 
-    if (rx_frame_buffer_length == MECANUMBOT_SERIAL_SERIAL_FRAME_MAX_SIZE) {
-        fprintf(stderr, "Failed to read frame: buffer overflow\n");
-        rx_frame_buffer_length_ = 0;
+    if (rx_frame_length_ == MECANUMBOT_SERIAL_SERIAL_FRAME_MAX_SIZE) {
+        rx_frame_length_ = 0;
+        rx_frame_crc_ = HDLC_CRC_INIT_VALUE;
     }
 }
 
 uint16_t MecanumbotSerialPort::crc_update(uint16_t crc, uint8_t data)
 {
     data ^= (uint8_t)(crc & 0xFF);
-	data ^= (data << 4);
-	return ((((uint16_t)data << 8) | ((uint8_t)(crc >> 8) & 0xFF)) ^ (uint8_t)(data >> 4) ^ ((uint16_t)data << 3));
+    data ^= (data << 4);
+    return ((((uint16_t)data << 8) | ((uint8_t)(crc >> 8) & 0xFF)) ^ (uint8_t)(data >> 4) ^ ((uint16_t)data << 3));
 }

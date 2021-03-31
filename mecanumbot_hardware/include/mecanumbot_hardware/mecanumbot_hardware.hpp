@@ -16,6 +16,18 @@ namespace debict
     {
         namespace hardware
         {
+            enum class DeviceCommand : uint8_t {
+                MotorSetDuty = 0x01,
+                MotorBrake   = 0x02,
+                MotorStop    = 0x03,
+            };
+
+            enum class DeviceMotorDirection : uint8_t {
+                None    = 0,
+                Forward = 1,
+                Reverse = 2,
+            };
+            
             class MecanumbotHardware
                 : public hardware_interface::BaseInterface<hardware_interface::SystemInterface>
             {
@@ -44,6 +56,7 @@ namespace debict
                 virtual hardware_interface::return_type write() override;
 
             private:
+                std::vector<uint8_t> motor_ids_;
                 std::vector<double> position_states_;
                 std::vector<double> velocity_states_;
                 std::vector<double> velocity_commands_;

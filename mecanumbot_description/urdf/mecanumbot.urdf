@@ -182,21 +182,25 @@
       <command_interface name="velocity" />
       <state_interface name="position" />
       <state_interface name="velocity" />
+      <param name="motor_id">1</param>
     </joint>
     <joint name="fr_wheel_joint">
       <command_interface name="velocity" />
       <state_interface name="position" />
       <state_interface name="velocity" />
+      <param name="motor_id">2</param>
     </joint>
     <joint name="rl_wheel_joint">
       <command_interface name="velocity" />
       <state_interface name="position" />
       <state_interface name="velocity" />
+      <param name="motor_id">4</param>
     </joint>
     <joint name="rr_wheel_joint">
       <command_interface name="velocity" />
       <state_interface name="position" />
       <state_interface name="velocity" />
+      <param name="motor_id">8</param>
     </joint>
   </ros2_control>
 </robot>
