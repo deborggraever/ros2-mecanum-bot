@@ -185,17 +185,17 @@ hardware_interface::return_type MecanumbotHardware::write()
             //    RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Motor velocity changed: %.5f", velocity_commands_[i]);
             //}
 
-            // Calculate the motor duty
-            uint16_t duty = (uint16_t)(velocity_commands_[i]);
-
             // Generate the motor command message
+            uint16_t duty = 0;
             uint8_t message[6];
             message[0] = (uint8_t)DeviceCommand::MotorSetDuty;
             message[1] = 4; // Payload len
             message[2] = motor_ids_[i];
             if (velocity_commands_[i] >= 0.0) {
+                duty = (uint16_t)(velocity_commands_[i]);
                 message[3] = (uint8_t)DeviceMotorDirection::Forward;
             } else {
+                duty = (uint16_t)(-velocity_commands_[i]);
                 message[3] = (uint8_t)DeviceMotorDirection::Reverse;
             }
             message[4] = (uint8_t)(duty & 0xFF);
