@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(mecanumbot_control)
+project(mecanumbot_teleop)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -15,25 +15,35 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Disable boost/shared_ptr in pluginlib while building on rpi4
-add_compile_definitions(PLUGINLIB__DISABLE_BOOST_FUNCTIONS)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(controller_manager REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
-add_executable(mecanumbot_control_node
-  src/mecanumbot_control_node.cpp
+add_executable(mecanumbot_teleop
+  src/node_main.cpp
+  src/mecanumbot_teleop.cpp
+  src/mecanumbot_joystick.cpp
+)
+target_include_directories(
+  mecanumbot_teleop
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 ament_target_dependencies(
-  mecanumbot_control_node
+  mecanumbot_teleop
   rclcpp
-  controller_manager
+  sensor_msgs
+  geometry_msgs
 )
 
+install(DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
 install(TARGETS
-  mecanumbot_control_node
+  mecanumbot_teleop
   DESTINATION lib/${PROJECT_NAME}
 )
 

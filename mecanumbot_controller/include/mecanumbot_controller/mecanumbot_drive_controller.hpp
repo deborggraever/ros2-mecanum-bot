@@ -19,7 +19,7 @@ namespace debict
         namespace controller
         {
             using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-            using Twist = geometry_msgs::msg::Twist;
+            using Twist = geometry_msgs::msg::TwistStamped;
 
             class MecanumbotDriveController
                 : public controller_interface::ControllerInterface

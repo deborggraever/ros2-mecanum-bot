@@ -181,9 +181,7 @@ hardware_interface::return_type MecanumbotHardware::write()
         // Only send motor commands if the velocity changed
         if (velocity_commands_[i] != velocity_commands_saved_[i]) {
 
-            //if (i == 0) {
-            //    RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Motor velocity changed: %.5f", velocity_commands_[i]);
-            //}
+            RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Motor velocity changed: %.5f", velocity_commands_[i]);
 
             // Generate the motor command message
             uint16_t duty = 0;

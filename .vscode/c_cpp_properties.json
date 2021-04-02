@@ -11,7 +11,8 @@
         "${workspaceFolder}/mecanumbot_base/include/**",
         "${workspaceFolder}/mecanumbot_control/include/**",
         "${workspaceFolder}/mecanumbot_controller/include/**",
-        "${workspaceFolder}/mecanumbot_hardware/include/**"
+        "${workspaceFolder}/mecanumbot_hardware/include/**",
+        "${workspaceFolder}/mecanumbot_teleop/include/**"
       ],
       "name": "ROS",
       "intelliSenseMode": "gcc-x64",

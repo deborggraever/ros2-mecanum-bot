@@ -85,7 +85,7 @@ controller_interface::return_type MecanumbotDriveController::update()
 
     // Calculate the wheel velocity
     // See: http://robotsforroboticists.com/drive-kinematics/
-    const auto twist = *(*velocity_command);
+    const auto twist = (*velocity_command)->twist;
     double fl_wheel_velocity = (1 / wheel_radius_) * (twist.linear.x - twist.linear.y - (wheel_separation_width_ + wheel_separation_length_) * twist.angular.z);
     double fr_wheel_velocity = (1 / wheel_radius_) * (twist.linear.x + twist.linear.y + (wheel_separation_width_ + wheel_separation_length_) * twist.angular.z);
     double rl_wheel_velocity = (1 / wheel_radius_) * (twist.linear.x + twist.linear.y - (wheel_separation_width_ + wheel_separation_length_) * twist.angular.z);
