@@ -72,6 +72,8 @@ namespace debict
                 std::string fr_wheel_joint_name_;
                 std::string rl_wheel_joint_name_;
                 std::string rr_wheel_joint_name_;
+                double linear_scale_;
+                double radial_scale_;
                 double wheel_radius_;
                 double wheel_distance_width_;
                 double wheel_distance_length_;

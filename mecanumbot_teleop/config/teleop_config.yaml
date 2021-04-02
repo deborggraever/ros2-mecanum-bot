@@ -5,29 +5,29 @@ teleop:
     move:
       forward:
         axis: 1
-        scale: 1.0
+        scale: 15.0
         deadzone: 0.0
       reverse:
         axis: 1
-        scale: 1.0
+        scale: 15.0
         deadzone: 0.0
       left:
         axis: 0
-        scale: 1.0
+        scale: 15.0
         deadzone: 0.0
       right:
         axis: 0
-        scale: 1.0
+        scale: 15.0
         deadzone: 0.0
     turn:
       left:
         axis: 5
-        scale: 0.5
+        scale: 15.0
         deadzone: 0.0
         offset: 1.0
       right:
         axis: 4
-        scale: -0.5
+        scale: -15.0
         deadzone: 0.0
         offset: 1.0
 
