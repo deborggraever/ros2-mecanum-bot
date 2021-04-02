@@ -4,6 +4,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
+#include <vector>
 
 namespace debict
 {
@@ -24,6 +25,8 @@ namespace debict
             private:
                 rclcpp::Publisher<sensor_msgs::msg::Joy>::SharedPtr joy_publisher_;
                 rclcpp::TimerBase::SharedPtr update_timer_;
+                std::vector<int> buttons_;
+                std::vector<double> axes_;
                 int device_handle_;
                 double deadzone_;
                 double scale_;

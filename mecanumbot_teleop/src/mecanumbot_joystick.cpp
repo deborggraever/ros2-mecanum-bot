@@ -37,7 +37,6 @@ MecanumbotJoystick::~MecanumbotJoystick()
 
 void MecanumbotJoystick::update()
 {
-    /*
     if (device_handle_ < 0) {
         std::string device = get_parameter("dev").as_string();
         device_handle_ = ::open(device.c_str(), O_RDONLY | O_NONBLOCK);
@@ -64,25 +63,12 @@ void MecanumbotJoystick::update()
             break;
         }
 
-        joy_message_->header.frame_id = "joy";
-        joy_message_->header.stamp = now();
-        if (event.type == JS_EVENT_BUTTON) {
-            if (event.number >= joy_message_->buttons.size()) {
-                size_t old_size = joy_message_->buttons.size();
-                joy_message_->buttons.resize(event.number + 1);
-                for (size_t i = old_size; i < joy_message_->buttons.size(); i++) {
-                    joy_message_->buttons[i] = 0;
-                }
-            }
-            joy_message_->buttons[event.number] = event.value ? 1 : 0;
-            has_event = true;
-        }
-        else if (event.type == JS_EVENT_AXIS) {
-            if (event.number >= joy_message_->axes.size()) {
-                size_t old_size = joy_message_->axes.size();
-                joy_message_->axes.resize(event.number + 1);
-                for (size_t i = old_size; i < joy_message_->axes.size(); i++) {
-                    joy_message_->axes[i] = 0.0f;
+        if (event.type == JS_EVENT_AXIS || event.type == JS_EVENT_AXIS | JS_EVENT_INIT) {
+            if (event.number >= axes_.size()) {
+                size_t old_size = axes_.size();
+                axes_.resize(event.number + 1);
+                for (size_t i = old_size; i < axes_.size(); i++) {
+                    axes_[i] = 0.0f;
                 }
             }
             double value = (double)event.value;
@@ -95,31 +81,34 @@ void MecanumbotJoystick::update()
             else {
                 value = 0.0;
             }
-            joy_message_->axes[event.number] = (float)(value * scale_);
+            axes_[event.number] = (float)(value * scale_);
+            has_event = true;
+        }
+        else if (event.type == JS_EVENT_BUTTON || event.type == JS_EVENT_BUTTON | JS_EVENT_INIT) {
+            if (event.number >= buttons_.size()) {
+                size_t old_size = buttons_.size();
+                buttons_.resize(event.number + 1);
+                for (size_t i = old_size; i < buttons_.size(); i++) {
+                    buttons_[i] = 0;
+                }
+            }
+            buttons_[event.number] = event.value ? 1 : 0;
             has_event = true;
         }
     }
-    */
-
-    sensor_msgs::msg::Joy::UniquePtr joy_msg(new sensor_msgs::msg::Joy());
-
-    bool has_event = true;
-    if (joy_msg->buttons.size() < 2)
-        joy_msg->buttons.resize(2);
-    joy_msg->buttons[0] = 0;
-    joy_msg->buttons[1] = 0;
-
-    if (joy_msg->axes.size() < 7)
-        joy_msg->axes.resize(7);
-    joy_msg->axes[0] = 0.0;
-    joy_msg->axes[1] = 0.0;
-    joy_msg->axes[2] = 0.0;
-    joy_msg->axes[3] = 0.0;
-    joy_msg->axes[4] = 0.0;
-    joy_msg->axes[5] = 0.0;
-    joy_msg->axes[6] = 0.0;
 
     if (has_event == true) {
+        sensor_msgs::msg::Joy::UniquePtr joy_msg(new sensor_msgs::msg::Joy());
+        joy_msg->header.frame_id = "joy";
+        joy_msg->header.stamp = now();
+        joy_msg->axes.resize(axes_.size());
+        joy_msg->buttons.resize(buttons_.size());
+        for (size_t i = 0; i < axes_.size(); i++) {
+            joy_msg->axes[i] = axes_[i];
+        }
+        for (size_t i = 0; i < buttons_.size(); i++) {
+            joy_msg->buttons[i] = buttons_[i];
+        }
         joy_publisher_->publish(std::move(joy_msg));
     }
 }
