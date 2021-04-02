@@ -63,7 +63,7 @@ void MecanumbotJoystick::update()
             break;
         }
 
-        if (event.type == JS_EVENT_AXIS || event.type == JS_EVENT_AXIS | JS_EVENT_INIT) {
+        if (event.type == JS_EVENT_AXIS || event.type == (JS_EVENT_AXIS | JS_EVENT_INIT)) {
             if (event.number >= axes_.size()) {
                 size_t old_size = axes_.size();
                 axes_.resize(event.number + 1);
@@ -84,7 +84,7 @@ void MecanumbotJoystick::update()
             axes_[event.number] = (float)(value * scale_);
             has_event = true;
         }
-        else if (event.type == JS_EVENT_BUTTON || event.type == JS_EVENT_BUTTON | JS_EVENT_INIT) {
+        else if (event.type == JS_EVENT_BUTTON || event.type == (JS_EVENT_BUTTON | JS_EVENT_INIT)) {
             if (event.number >= buttons_.size()) {
                 size_t old_size = buttons_.size();
                 buttons_.resize(event.number + 1);
