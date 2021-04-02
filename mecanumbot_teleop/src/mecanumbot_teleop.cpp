@@ -51,12 +51,10 @@ MecanumbotTeleop::MecanumbotTeleop(const std::string & name)
 
     // Setup the velocity command publisher
     std::string twist_topic = get_parameter("twist_topic").as_string();
-    twist_message_ = std::make_unique<geometry_msgs::msg::TwistStamped>();
     twist_publisher_ = create_publisher<geometry_msgs::msg::TwistStamped>(twist_topic, 10);
 
     // Setup the joystick message subscriber
     std::string joy_topic = get_parameter("joy_topic").as_string();
-    joy_message_ = std::make_unique<sensor_msgs::msg::Joy>();
     joy_subscriber_ = create_subscription<sensor_msgs::msg::Joy>(joy_topic, 10, std::bind(&MecanumbotTeleop::on_joy_message, this, std::placeholders::_1));
 
     RCLCPP_INFO(get_logger(), "Turn right deadzone: %f", turn_right_config_.Deadzone);
@@ -64,15 +62,16 @@ MecanumbotTeleop::MecanumbotTeleop(const std::string & name)
 
 void MecanumbotTeleop::on_joy_message(std::unique_ptr<sensor_msgs::msg::Joy> msg)
 {
-    twist_message_->header.frame_id = "twist";
-    twist_message_->header.stamp = now();
-    twist_message_->twist.linear.x = get_axis_value(msg, move_forward_config_) + get_axis_value(msg, move_reverse_config_);
-    twist_message_->twist.linear.y = get_axis_value(msg, move_left_config_) + get_axis_value(msg, move_right_config_);
-    twist_message_->twist.linear.z = 0.0;
-    twist_message_->twist.angular.x = 0.0;
-    twist_message_->twist.angular.y = 0.0;
-    twist_message_->twist.angular.z = get_axis_value(msg, turn_left_config_) + get_axis_value(msg, turn_right_config_);
-    twist_publisher_->publish(std::move(twist_message_));
+    geometry_msgs::msg::TwistStamped::UniquePtr twist_message(new geometry_msgs::msg::TwistStamped());
+    twist_message->header.frame_id = "twist";
+    twist_message->header.stamp = now();
+    twist_message->twist.linear.x = get_axis_value(msg, move_forward_config_) + get_axis_value(msg, move_reverse_config_);
+    twist_message->twist.linear.y = get_axis_value(msg, move_left_config_) + get_axis_value(msg, move_right_config_);
+    twist_message->twist.linear.z = 0.0;
+    twist_message->twist.angular.x = 0.0;
+    twist_message->twist.angular.y = 0.0;
+    twist_message->twist.angular.z = get_axis_value(msg, turn_left_config_) + get_axis_value(msg, turn_right_config_);
+    twist_publisher_->publish(std::move(twist_message));
 }
 
 double MecanumbotTeleop::get_axis_value(std::unique_ptr<sensor_msgs::msg::Joy> & msg, AxisConfig& config)

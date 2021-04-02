@@ -32,8 +32,6 @@ namespace debict
             private:
                 rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_publisher_;
                 rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_subscriber_;
-                std::unique_ptr<geometry_msgs::msg::TwistStamped> twist_message_;
-                std::unique_ptr<sensor_msgs::msg::Joy> joy_message_;
                 AxisConfig move_forward_config_;
                 AxisConfig move_reverse_config_;
                 AxisConfig move_left_config_;

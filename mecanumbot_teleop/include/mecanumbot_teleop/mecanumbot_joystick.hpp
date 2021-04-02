@@ -24,7 +24,6 @@ namespace debict
             private:
                 rclcpp::Publisher<sensor_msgs::msg::Joy>::SharedPtr joy_publisher_;
                 rclcpp::TimerBase::SharedPtr update_timer_;
-                std::unique_ptr<sensor_msgs::msg::Joy> joy_message_;
                 int device_handle_;
                 double deadzone_;
                 double scale_;

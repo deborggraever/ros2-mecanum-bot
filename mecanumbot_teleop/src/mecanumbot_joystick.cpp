@@ -18,7 +18,6 @@ MecanumbotJoystick::MecanumbotJoystick(const std::string & name)
 
     // Setup the joystick message publisher
     std::string joy_topic = get_parameter("joy_topic").as_string();
-    joy_message_ = std::make_unique<sensor_msgs::msg::Joy>();
     joy_publisher_ = create_publisher<sensor_msgs::msg::Joy>(joy_topic, 10);
 
     // Initialize the update
@@ -38,6 +37,7 @@ MecanumbotJoystick::~MecanumbotJoystick()
 
 void MecanumbotJoystick::update()
 {
+    /*
     if (device_handle_ < 0) {
         std::string device = get_parameter("dev").as_string();
         device_handle_ = ::open(device.c_str(), O_RDONLY | O_NONBLOCK);
@@ -99,8 +99,27 @@ void MecanumbotJoystick::update()
             has_event = true;
         }
     }
+    */
+
+    sensor_msgs::msg::Joy::UniquePtr joy_msg(new sensor_msgs::msg::Joy());
+
+    bool has_event = true;
+    if (joy_msg->buttons.size() < 2)
+        joy_msg->buttons.resize(2);
+    joy_msg->buttons[0] = 0;
+    joy_msg->buttons[1] = 0;
+
+    if (joy_msg->axes.size() < 7)
+        joy_msg->axes.resize(7);
+    joy_msg->axes[0] = 0.0;
+    joy_msg->axes[1] = 0.0;
+    joy_msg->axes[2] = 0.0;
+    joy_msg->axes[3] = 0.0;
+    joy_msg->axes[4] = 0.0;
+    joy_msg->axes[5] = 0.0;
+    joy_msg->axes[6] = 0.0;
 
     if (has_event == true) {
-        joy_publisher_->publish(std::move(joy_message_));
+        joy_publisher_->publish(std::move(joy_msg));
     }
 }
