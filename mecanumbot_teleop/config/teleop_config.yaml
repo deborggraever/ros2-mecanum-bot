@@ -1,7 +1,7 @@
 teleop:
   ros__parameters:
     joy_topic: /mecanumbot/joy
-    twist_topic: /mecanumbot/joy
+    twist_topic: /mecanumbot/cmd_vel
     move:
       forward:
         axis: 1
