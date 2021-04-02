@@ -142,7 +142,7 @@ CallbackReturn MecanumbotDriveController::on_configure(const rclcpp_lifecycle::S
     wheel_separation_width_ = wheel_distance_width_ / 2;
     wheel_separation_length_ = wheel_distance_length_ / 2;
 
-    velocity_command_subsciption_ = get_node()->create_subscription<Twist>("/cmd_vel", rclcpp::SystemDefaultsQoS(), [this](const Twist::SharedPtr twist)
+    velocity_command_subsciption_ = get_node()->create_subscription<Twist>("/cmd_vel", 10, [this](const Twist::SharedPtr twist)
     {
         velocity_command_ptr_.writeFromNonRT(twist);
     });
