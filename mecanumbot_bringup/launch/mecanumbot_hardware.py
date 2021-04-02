@@ -33,9 +33,13 @@ def generate_launch_description():
                 'use_sim_time': use_sim_time
             }.items()
         ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                [ThisLaunchFileDir(), '/mecanumbot_teleop.py']
+            )
+        ),
 
         Node(
-            #name='controller_manager',
             package='mecanumbot_control',
             executable='mecanumbot_control_node',
             output='screen',
