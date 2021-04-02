@@ -22,12 +22,14 @@ teleop:
     turn:
       left:
         axis: 5
-        scale: 1.0
+        scale: 0.5
         deadzone: 0.0
+        offset: 1.0
       right:
         axis: 4
-        scale: -1.0
+        scale: -0.5
         deadzone: 0.0
+        offset: 1.0
 
 joystick:
   ros__parameters:

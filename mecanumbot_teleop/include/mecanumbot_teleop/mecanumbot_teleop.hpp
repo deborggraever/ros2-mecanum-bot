@@ -18,9 +18,10 @@ namespace debict
             public:
                 struct AxisConfig
                 {
-                    uint32_t Axis;
-                    double Scale;
-                    double Deadzone;
+                    uint32_t axis;
+                    double scale;
+                    double offset;
+                    double deadzone;
                 };
             public:
                 MecanumbotTeleop(const std::string & name);
