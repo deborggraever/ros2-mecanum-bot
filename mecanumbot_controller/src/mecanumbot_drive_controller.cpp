@@ -53,7 +53,7 @@ controller_interface::InterfaceConfiguration MecanumbotDriveController::state_in
 controller_interface::return_type MecanumbotDriveController::init(const std::string & controller_name)
 {
     auto ret = ControllerInterface::init(controller_name);
-    if (ret != controller_interface::return_type::SUCCESS) {
+    if (ret != controller_interface::return_type::OK) {
         return ret;
     }
 
@@ -72,7 +72,7 @@ controller_interface::return_type MecanumbotDriveController::init(const std::str
         return controller_interface::return_type::ERROR;
     }
 
-    return controller_interface::return_type::SUCCESS;
+    return controller_interface::return_type::OK;
 }
 
 controller_interface::return_type MecanumbotDriveController::update()
@@ -80,7 +80,7 @@ controller_interface::return_type MecanumbotDriveController::update()
     // Get the last velocity command
     auto velocity_command = velocity_command_ptr_.readFromRT();
     if (!velocity_command || !(*velocity_command)) {
-        return controller_interface::return_type::SUCCESS;
+        return controller_interface::return_type::OK;
     }
 
     // Calculate the wheel velocity
@@ -96,7 +96,7 @@ controller_interface::return_type MecanumbotDriveController::update()
     rl_wheel_->set_velocity(rl_wheel_velocity);
     rr_wheel_->set_velocity(rr_wheel_velocity);
 
-    return controller_interface::return_type::SUCCESS;
+    return controller_interface::return_type::OK;
 }
 
 CallbackReturn MecanumbotDriveController::on_configure(const rclcpp_lifecycle::State &)
