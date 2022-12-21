@@ -50,32 +50,28 @@ controller_interface::InterfaceConfiguration MecanumbotDriveController::state_in
     return state_interfaces_config;
 }
 
-controller_interface::return_type MecanumbotDriveController::init(const std::string & controller_name)
+controller_interface::CallbackReturn MecanumbotDriveController::on_init()
 {
-    auto ret = ControllerInterface::init(controller_name);
-    if (ret != controller_interface::return_type::OK) {
-        return ret;
-    }
-
     try {
         auto node = get_node();
-        node->declare_parameter<std::string>("fl_wheel_joint_name", "");
-        node->declare_parameter<std::string>("fr_wheel_joint_name", "");
-        node->declare_parameter<std::string>("rl_wheel_joint_name", "");
-        node->declare_parameter<std::string>("rr_wheel_joint_name", "");
-        node->declare_parameter<double>("wheel_radius", 0.0);
-        node->declare_parameter<double>("wheel_distance.width", 0.0);
-        node->declare_parameter<double>("wheel_distance.length", 0.0);
+        //node->declare_parameter<std::string>("fl_wheel_joint_name", "");
+        //node->declare_parameter<std::string>("fr_wheel_joint_name", "");
+        //node->declare_parameter<std::string>("rl_wheel_joint_name", "");
+        //node->declare_parameter<std::string>("rr_wheel_joint_name", "");
+        //node->declare_parameter<double>("wheel_radius", 0.0);
+        //node->declare_parameter<double>("wheel_distance.width", 0.0);
+        //node->declare_parameter<double>("wheel_distance.length", 0.0);
+        
     }
     catch (const std::exception & e) {
         fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
-        return controller_interface::return_type::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
 
-    return controller_interface::return_type::OK;
+    return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type MecanumbotDriveController::update()
+controller_interface::return_type MecanumbotDriveController::update(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
     // Get the last velocity command
     auto velocity_command = velocity_command_ptr_.readFromRT();
@@ -99,7 +95,7 @@ controller_interface::return_type MecanumbotDriveController::update()
     return controller_interface::return_type::OK;
 }
 
-CallbackReturn MecanumbotDriveController::on_configure(const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn MecanumbotDriveController::on_configure(const rclcpp_lifecycle::State &)
 {
     RCLCPP_INFO(get_node()->get_logger(), "Configure MecanumbotDriverController");
 
@@ -109,19 +105,19 @@ CallbackReturn MecanumbotDriveController::on_configure(const rclcpp_lifecycle::S
     rr_wheel_joint_name_ = get_node()->get_parameter("rr_wheel_joint_name").as_string();
     if (fl_wheel_joint_name_.empty()) {
         RCLCPP_ERROR(get_node()->get_logger(), "'fl_wheel_joint_name' parameter was empty");
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
     if (fr_wheel_joint_name_.empty()) {
         RCLCPP_ERROR(get_node()->get_logger(), "'fr_wheel_joint_name' parameter was empty");
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
     if (rl_wheel_joint_name_.empty()) {
         RCLCPP_ERROR(get_node()->get_logger(), "'rl_wheel_joint_name' parameter was empty");
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
     if (rr_wheel_joint_name_.empty()) {
         RCLCPP_ERROR(get_node()->get_logger(), "'rr_wheel_joint_name' parameter was empty");
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
 
     wheel_radius_ = get_node()->get_parameter("wheel_radius").as_double();
@@ -129,15 +125,15 @@ CallbackReturn MecanumbotDriveController::on_configure(const rclcpp_lifecycle::S
     wheel_distance_length_ = get_node()->get_parameter("wheel_distance.length").as_double();
     if (wheel_radius_ <= 0.0) {
         RCLCPP_ERROR(get_node()->get_logger(), "'wheel_radius' parameter cannot be zero or less");
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
     if (wheel_distance_width_ <= 0.0) {
         RCLCPP_ERROR(get_node()->get_logger(), "'wheel_distance.width' parameter cannot be zero or less");
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
     if (wheel_distance_length_ <= 0.0) {
         RCLCPP_ERROR(get_node()->get_logger(), "'wheel_distance.length' parameter cannot be zero or less");
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
     wheel_separation_width_ = wheel_distance_width_ / 2;
     wheel_separation_length_ = wheel_distance_length_ / 2;
@@ -147,10 +143,10 @@ CallbackReturn MecanumbotDriveController::on_configure(const rclcpp_lifecycle::S
         velocity_command_ptr_.writeFromNonRT(twist);
     });
 
-    return CallbackReturn::SUCCESS;
+    return controller_interface::CallbackReturn::SUCCESS;
 }
 
-CallbackReturn MecanumbotDriveController::on_activate(const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn MecanumbotDriveController::on_activate(const rclcpp_lifecycle::State &)
 {
     // Initialize the wheels
     fl_wheel_ = get_wheel(fl_wheel_joint_name_);
@@ -158,18 +154,18 @@ CallbackReturn MecanumbotDriveController::on_activate(const rclcpp_lifecycle::St
     rl_wheel_ = get_wheel(rl_wheel_joint_name_);
     rr_wheel_ = get_wheel(rr_wheel_joint_name_);
     if (!fl_wheel_ || !fr_wheel_ || !rl_wheel_ || !rr_wheel_) {
-        return CallbackReturn::ERROR;
+        return controller_interface::CallbackReturn::ERROR;
     }
     
-    return CallbackReturn::SUCCESS;
+    return controller_interface::CallbackReturn::SUCCESS;
 }
 
-CallbackReturn MecanumbotDriveController::on_deactivate(const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn MecanumbotDriveController::on_deactivate(const rclcpp_lifecycle::State &)
 {
-    return CallbackReturn::SUCCESS;
+    return controller_interface::CallbackReturn::SUCCESS;
 }
 
-CallbackReturn MecanumbotDriveController::on_cleanup(const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn MecanumbotDriveController::on_cleanup(const rclcpp_lifecycle::State &)
 {
     // Uninitialize the wheels
     fl_wheel_.reset();
@@ -177,17 +173,17 @@ CallbackReturn MecanumbotDriveController::on_cleanup(const rclcpp_lifecycle::Sta
     rl_wheel_.reset();
     rr_wheel_.reset();
 
-    return CallbackReturn::SUCCESS;
+    return controller_interface::CallbackReturn::SUCCESS;
 }
 
-CallbackReturn MecanumbotDriveController::on_error(const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn MecanumbotDriveController::on_error(const rclcpp_lifecycle::State &)
 {
-    return CallbackReturn::SUCCESS;
+    return controller_interface::CallbackReturn::SUCCESS;
 }
 
-CallbackReturn MecanumbotDriveController::on_shutdown(const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn MecanumbotDriveController::on_shutdown(const rclcpp_lifecycle::State &)
 {
-    return CallbackReturn::SUCCESS;
+    return controller_interface::CallbackReturn::SUCCESS;
 }
 
 std::shared_ptr<MecanumbotWheel> MecanumbotDriveController::get_wheel(const std::string & wheel_joint_name)

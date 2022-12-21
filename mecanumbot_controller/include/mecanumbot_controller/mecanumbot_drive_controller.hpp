@@ -18,7 +18,6 @@ namespace debict
     {
         namespace controller
         {
-            using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
             using Twist = geometry_msgs::msg::TwistStamped;
 
             class MecanumbotDriveController
@@ -35,28 +34,28 @@ namespace debict
                 controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                controller_interface::return_type init(const std::string & controller_name) override;
+                controller_interface::return_type update(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                controller_interface::return_type update() override;
+                controller_interface::CallbackReturn on_init() override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+                controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+                controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+                controller_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
+                controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
+                controller_interface::CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
 
                 DEBICT_MECANUMBOT_CONTROLLER_PUBLIC
-                CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
+                controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
             
             protected:
                 std::shared_ptr<MecanumbotWheel> get_wheel(const std::string & wheel_joint_name);
