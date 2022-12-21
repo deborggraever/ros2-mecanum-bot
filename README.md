@@ -4,8 +4,8 @@ ROS2 Mecanum wheel robot
 ## Getting started
 
 #### Prerequisites
-This project is build and tested on Ubuntu 22.04 LTS with ROS 2 Humble LTS.
-For ROS 2 Foxy on Ubuntu 20.04 LTS see: [Branch: Foxy](/deborggraever/ros2-mecanum-bot/tree/foxy)
+This project is build and tested on Ubuntu 22.04 LTS with ROS 2 Humble LTS.  
+For ROS 2 Foxy on Ubuntu 20.04 LTS see: [Branch: Foxy](https://github.com/deborggraever/ros2-mecanum-bot/tree/foxy)
 * [ROS install instructions](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
 * [Colcon install instructions](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)
 
