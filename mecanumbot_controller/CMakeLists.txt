@@ -39,6 +39,7 @@ ament_target_dependencies(
   ${PROJECT_NAME}
   controller_interface
   hardware_interface
+  realtime_tools
   pluginlib
   rclcpp
   rclcpp_lifecycle
