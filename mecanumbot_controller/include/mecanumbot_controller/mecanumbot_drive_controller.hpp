@@ -60,6 +60,8 @@ namespace debict
             protected:
                 std::shared_ptr<MecanumbotWheel> get_wheel(const std::string & wheel_joint_name);
 
+                bool reset();
+
             protected:
                 rclcpp::Subscription<Twist>::SharedPtr velocity_command_subsciption_;
                 realtime_tools::RealtimeBuffer<std::shared_ptr<Twist>> velocity_command_ptr_;
@@ -78,6 +80,7 @@ namespace debict
                 double wheel_distance_length_;
                 double wheel_separation_width_;
                 double wheel_separation_length_;
+                bool subscriber_is_active_;
 
             };
         }
