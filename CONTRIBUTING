@@ -1,0 +1,51 @@
+# Contributing Guidelines
+
+Thank you for considering contributing to this project! We appreciate your time and effort in making this project better.
+
+## Table of Contents
+- [Code of Conduct](#code-of-conduct)
+- [How Can I Contribute?](#how-can-i-contribute)
+- [Reporting Bugs](#reporting-bugs)
+- [Suggesting Enhancements](#suggesting-enhancements)
+- [Pull Requests](#pull-requests)
+- [Styleguides](#styleguides)
+- [License](#license)
+
+## Code of Conduct
+
+Please review and adhere to the [Code of Conduct](CODE_OF_CONDUCT.md) when participating in this project.
+
+## How Can I Contribute?
+
+There are several ways you can contribute to this project:
+
+- Reporting bugs
+- Suggesting enhancements
+- Writing code patches
+- Improving documentation
+- Providing feedback
+
+## Reporting Bugs
+
+If you encounter any bugs or issues with the project, please [open an issue](https://github.com/deborggraever/ros2-mecanum-bot/issues) on GitHub. Be sure to include relevant information such as steps to reproduce the issue and any error messages you encountered.
+
+## Suggesting Enhancements
+
+If you have ideas for how to improve the project, feel free to [open an issue](https://github.com/deborggraever/ros2-mecanum-bot/issues) on GitHub. Provide a clear and detailed description of your suggestion, including any relevant examples or references.
+
+## Pull Requests
+
+We welcome pull requests from the community. To contribute code changes, please follow these steps:
+
+1. Fork the repository and create a new branch for your changes.
+2. Make your changes and ensure that the code passes all tests.
+3. Submit a pull request with a clear description of your changes and any relevant information.
+
+## Styleguides
+
+When contributing code, please follow the styleguides and best practices established by the project. This helps maintain consistency and readability across the codebase.
+
+## License
+
+By contributing to this project, you agree that your contributions will be licensed under the [LICENSE](LICENSE) file of the project.
+
