@@ -22,6 +22,7 @@ add_compile_definitions(PLUGINLIB__DISABLE_BOOST_FUNCTIONS)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(controller_manager REQUIRED)
+find_package(realtime_tools REQUIRED)
 
 add_executable(mecanumbot_control_node
   src/mecanumbot_control_node.cpp
