@@ -72,7 +72,7 @@
     <parent link="base_link"/>
     <child link="fl_wheel_link"/>
     <origin xyz="${-wheel_offset_x} ${-wheel_offset_y} ${wheel_offset_z}" rpy="0 0 ${-M_PI/2}" />
-    <axis xyz="-1 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0" rpy="0 0 0"/>
   </joint>
   <link name="fl_wheel_link">
     <visual>
@@ -83,13 +83,13 @@
       <material name="darkgrey" />
     </visual>
     <collision>
-      <origin xyz="0.015 0 0" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>   
         <box size="${wheel_width} ${wheel_radius*2} ${wheel_radius*2}" />
       </geometry>
     </collision>
     <inertial>
-      <origin xyz="0.0 0 0" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <mass value="${wheel_mass}" />
       <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" w="${wheel_width}" />
     </inertial>
@@ -98,24 +98,25 @@
   <joint name="fr_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="fr_wheel_link"/>
-    <origin xyz="-0.19 0.23 ${wheel_offset_z}" rpy="0 0 0" />
+    <origin xyz="${-wheel_offset_x} ${wheel_offset_y} ${wheel_offset_z}" rpy="0 0 ${M_PI/2}" />
+    <axis xyz="-1 0 0" rpy="0 0 0"/>
   </joint>
   <link name="fr_wheel_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="${wheel_radius*2} ${wheel_width} ${wheel_radius*2}" />
+        <mesh filename="package://mecanumbot_description/meshes/fr_wheel_link.STL" scale="0.6 0.6 0.6" />
       </geometry>
-      <material name="blue" />
+      <material name="darkgrey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>   
-        <box size="${wheel_radius*2} ${wheel_width} ${wheel_radius*2}" />
+        <box size="${wheel_width} ${wheel_radius*2} ${wheel_radius*2}" />
       </geometry>
     </collision>
     <inertial>
-      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <mass value="${wheel_mass}" />
       <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" w="${wheel_width}" />
     </inertial>
@@ -124,24 +125,25 @@
   <joint name="rl_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="rl_wheel_link"/>
-    <origin xyz="0.19 -0.23 ${wheel_offset_z}" rpy="0 0 0" />
+    <origin xyz="${wheel_offset_x} ${-wheel_offset_y} ${wheel_offset_z}" rpy="0 0 ${-M_PI/2}" />
+    <axis xyz="-1 0 0" rpy="0 0 0"/>
   </joint>
   <link name="rl_wheel_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="${wheel_radius*2} ${wheel_width} ${wheel_radius*2}" />
+        <mesh filename="package://mecanumbot_description/meshes/rl_wheel_link.STL" scale="0.6 0.6 0.6" />
       </geometry>
-      <material name="blue" />
+      <material name="darkgrey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>   
-        <box size="${wheel_radius*2} ${wheel_width} ${wheel_radius*2}" />
+        <box size="${wheel_width} ${wheel_radius*2} ${wheel_radius*2}" />
       </geometry>
     </collision>
     <inertial>
-      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <mass value="${wheel_mass}" />
       <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" w="${wheel_width}" />
     </inertial>
@@ -150,24 +152,25 @@
   <joint name="rr_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="rr_wheel_link"/>
-    <origin xyz="0.19 0.23 ${wheel_offset_z}" rpy="0 0 0" />
+    <origin xyz="${wheel_offset_x} ${wheel_offset_y} ${wheel_offset_z}" rpy="0 0 ${M_PI/2}" />
+    <axis xyz="-1 0 0" rpy="0 0 0"/>
   </joint>
   <link name="rr_wheel_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="${wheel_radius*2} ${wheel_width} ${wheel_radius*2}" />
+        <mesh filename="package://mecanumbot_description/meshes/rr_wheel_link.STL" scale="0.6 0.6 0.6" />
       </geometry>
-      <material name="blue" />
+      <material name="darkgrey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>   
-        <box size="${wheel_radius*2} ${wheel_width} ${wheel_radius*2}" />
+        <box size="${wheel_width} ${wheel_radius*2} ${wheel_radius*2}" />
       </geometry>
     </collision>
     <inertial>
-      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <mass value="${wheel_mass}" />
       <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" w="${wheel_width}" />
     </inertial>

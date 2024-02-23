@@ -39,8 +39,8 @@ def generate_launch_description():
                 {'robot_description': robot_description}
             ]
         ),
-        #Node(
-        #    package='joint_state_publisher_gui',
-        #    executable='joint_state_publisher_gui'
-        #)
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui'
+        )
     ])
