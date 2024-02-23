@@ -13,7 +13,7 @@ For ROS 2 Foxy on Ubuntu 20.04 LTS see: [Branch: Foxy](https://github.com/deborg
 ```
 mkdir -p ~/workspaces/ros2-mecanum-bot/src
 cd ~/workspaces/ros2-mecanum-bot/src
-git clone git clone git@github.com:deborggraever/ros2-mecanum-bot.git .
+git clone https://github.com/deborggraever/ros2-mecanum-bot.git .
 ```
 
 #### Install dependencies
