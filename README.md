@@ -26,7 +26,7 @@ rosdep install --from-paths src --ignore-src --rosdistro humble -r -y
 #### Build and run
 ```
 cd ~/workspaces/ros2-mecanum-bot
-colcon build
+colcon build --symlink-install
 source install/setup.bash
 ros2 launch mecanumbot_bringup mecanumbot_hardware.py
 ```
