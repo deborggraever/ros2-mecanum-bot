@@ -52,7 +52,7 @@ int main(int argc, char * argv[])
     // Load the controllers
     std::vector<std::string> start_controllers;
     std::vector<std::string> stop_controllers;
-    controller_manager_node->load_controller("joint_state_broadcaster", "joint_state_controller/JointStateBroadcaster");
+    controller_manager_node->load_controller("joint_state_broadcaster", "joint_state_broadcaster/JointStateBroadcaster");
     controller_manager_node->load_controller("mecanumbot_drive_controller", "mecanumbot_controller/MecanumbotDriveController");
     controller_manager_node->configure_controller("joint_state_broadcaster");
     controller_manager_node->configure_controller("mecanumbot_drive_controller");
