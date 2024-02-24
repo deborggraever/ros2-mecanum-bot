@@ -125,8 +125,8 @@ hardware_interface::CallbackReturn MecanumbotHardware::on_activate(const rclcpp_
 
     serial_port_ = std::make_shared<MecanumbotSerialPort>();
     if (serial_port_->open(serial_port_name_) != return_type::SUCCESS) {
-        RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Mecanumbot hardware failed to open serial port");
-        return hardware_interface::CallbackReturn::ERROR;
+        RCLCPP_WARN(rclcpp::get_logger("MecanumbotHardware"), "Mecanumbot hardware failed to open serial port");
+        return hardware_interface::CallbackReturn::SUCCESS;
     }
 
     RCLCPP_INFO(rclcpp::get_logger("MecanumbotHardware"), "Mecanumbot hardware started");
@@ -148,6 +148,11 @@ hardware_interface::CallbackReturn MecanumbotHardware::on_deactivate(const rclcp
 
 hardware_interface::return_type MecanumbotHardware::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
+    // Make sure we are connected to the serial port
+    if (!serial_port_->is_open()) {
+        RCLCPP_WARN(rclcpp::get_logger("MecanumbotHardware"), "Mecanumbot hardware not connected to serial port");
+        return hardware_interface::return_type::ERROR;
+    }
 
     // We currently have an ack response, so read the frames
     std::vector<SerialHdlcFrame> frames;
@@ -197,7 +202,9 @@ hardware_interface::return_type MecanumbotHardware::write(const rclcpp::Time & t
             message[5] = (uint8_t)((duty >> 8) & 0xFF);
 
             // Send the motor command
-            serial_port_->write_frame(message, 6);
+            if (serial_port_->is_open()) {
+                serial_port_->write_frame(message, 6);
+            }
 
             // Store the current velocity
             velocity_commands_saved_[i] = velocity_commands_[i];

@@ -37,13 +37,13 @@ return_type MecanumbotSerialPort::open(const std::string & port_name)
     serial_port_ = ::open(port_name.c_str(), O_RDWR | O_NOCTTY);
 
     if (serial_port_ < 0) {
-        fprintf(stderr, "Failed to open serial port: %s (%d)\n", strerror(errno), errno);
+        RCLCPP_ERROR(rclcpp::get_logger("MecanumbotSerialPort"), "Failed to open serial port: %s (%d)", strerror(errno), errno);
         return return_type::ERROR;
     }
 
     struct termios tty_config{};
     if (::tcgetattr(serial_port_, &tty_config) != 0) {
-        fprintf(stderr, "Failed to get serial port configuration: %s (%d)\n", strerror(errno), errno);
+        RCLCPP_ERROR(rclcpp::get_logger("MecanumbotSerialPort"), "Failed to get serial port configuration: %s (%d)", strerror(errno), errno);
         close();
         return return_type::ERROR;
     }
@@ -70,7 +70,7 @@ return_type MecanumbotSerialPort::open(const std::string & port_name)
     */
 
     if (::tcsetattr(serial_port_, TCSANOW, &tty_config) != 0) {
-        fprintf(stderr, "Failed to set serial port configuration: %s (%d)\n", strerror(errno), errno);
+        RCLCPP_ERROR(rclcpp::get_logger("MecanumbotSerialPort"), "Failed to set serial port configuration: %s (%d)", strerror(errno), errno);
         close();
         return return_type::ERROR;
     }
@@ -92,7 +92,7 @@ return_type MecanumbotSerialPort::read_frames(std::vector<SerialHdlcFrame>& fram
     // Read data from the serial port
     const ssize_t num_bytes = ::read(serial_port_, rx_buffer_, 256);
     if (num_bytes == -1) {
-        fprintf(stderr, "Failed to read serial port data: %s (%d)\n", strerror(errno), errno);
+        RCLCPP_ERROR(rclcpp::get_logger("MecanumbotSerialPort"), "Failed to read serial port data: %s (%d)", strerror(errno), errno);
         return return_type::ERROR;
     }
 
@@ -122,7 +122,7 @@ return_type MecanumbotSerialPort::write_frame(const uint8_t* data, size_t size)
     tx_frame_buffer_[tx_frame_length_++] = HDLC_FRAME_BOUNDRY_FLAG;
 
     if (::write(serial_port_, tx_frame_buffer_, tx_frame_length_) == -1) {
-        fprintf(stderr, "Failed to write serial port data: %s (%d)\n", strerror(errno), errno);
+        RCLCPP_ERROR(rclcpp::get_logger("MecanumbotSerialPort"), "Failed to write serial port data: %s (%d)", strerror(errno), errno);
         return return_type::ERROR;
     }
 
