@@ -182,7 +182,7 @@ std::shared_ptr<MecanumbotWheel> MecanumbotDriveController::get_wheel(const std:
     // Lookup the position state interface
     const auto position_state = std::find_if(state_interfaces_.cbegin(), state_interfaces_.cend(), [&wheel_joint_name](const hardware_interface::LoanedStateInterface & interface)
     {
-        return interface.get_name() == wheel_joint_name && interface.get_interface_name() == hardware_interface::HW_IF_POSITION;
+        return interface.get_prefix_name() == wheel_joint_name && interface.get_interface_name() == hardware_interface::HW_IF_POSITION;
     });
     if (position_state == state_interfaces_.cend()) {
         RCLCPP_ERROR(get_node()->get_logger(), "%s position state interface not found", wheel_joint_name.c_str());
@@ -192,7 +192,7 @@ std::shared_ptr<MecanumbotWheel> MecanumbotDriveController::get_wheel(const std:
     // Lookup the velocity state interface
     const auto velocity_state = std::find_if(state_interfaces_.cbegin(), state_interfaces_.cend(), [&wheel_joint_name](const hardware_interface::LoanedStateInterface & interface)
     {
-        return interface.get_name() == wheel_joint_name && interface.get_interface_name() == hardware_interface::HW_IF_VELOCITY;
+        return interface.get_prefix_name() == wheel_joint_name && interface.get_interface_name() == hardware_interface::HW_IF_VELOCITY;
     });
     if (velocity_state == state_interfaces_.cend()) {
         RCLCPP_ERROR(get_node()->get_logger(), "%s velocity state interface not found", wheel_joint_name.c_str());
@@ -202,7 +202,7 @@ std::shared_ptr<MecanumbotWheel> MecanumbotDriveController::get_wheel(const std:
     // Lookup the velocity command interface
     const auto velocity_command = std::find_if(command_interfaces_.begin(), command_interfaces_.end(), [&wheel_joint_name](const hardware_interface::LoanedCommandInterface & interface)
     {
-        return interface.get_name() == wheel_joint_name && interface.get_interface_name() == hardware_interface::HW_IF_VELOCITY;
+        return interface.get_prefix_name() == wheel_joint_name && interface.get_interface_name() == hardware_interface::HW_IF_VELOCITY;
     });
     if (velocity_command == command_interfaces_.end()) {
         RCLCPP_ERROR(get_node()->get_logger(), "%s velocity command interface not found", wheel_joint_name.c_str());
